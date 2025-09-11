@@ -1,6 +1,6 @@
 import Resume from "../models/resume.js";
 import { analyzeResumeWithAI } from "../services/openai.service.js";
-import pdf from "pdf-parse"; 
+import { PdfReader } from "pdfreader";
 
 export const uploadAndAnalyze = async (req, res) => {
   console.log("📥 New request received for resume upload + analysis");
@@ -21,13 +21,23 @@ export const uploadAndAnalyze = async (req, res) => {
     });
     console.log("💾 Metadata saved to DB with _id:", doc._id);
 
-    // Extract text from PDF using the correct pdf-parse library
+    // Extract text from PDF using pdfreader
     let resumeText = "";
     if (req.file && req.file.buffer) {
       try {
-        const pdfData = await pdf(req.file.buffer);
-        resumeText = pdfData.text;
-        console.log("✅ PDF parsing successful with pdf-parse");
+        resumeText = await new Promise((resolve, reject) => {
+          let text = "";
+          new PdfReader().parseBuffer(req.file.buffer, (err, item) => {
+            if (err) {
+              return reject(err);
+            } else if (!item) {
+              return resolve(text);
+            } else if (item.text) {
+              text += item.text + " ";
+            }
+          });
+        });
+        console.log("✅ PDF parsing successful with pdfreader");
       } catch (err) {
         console.error("❌ PDF parsing failed:", err.message);
         resumeText = `Could not extract text. File info: ${req.file.originalname}`;

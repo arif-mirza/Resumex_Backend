@@ -20,8 +20,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Consolidated CORS configuration
-// Vercel will set the correct origin in production
 app.use(
   cors({
     origin: [
@@ -58,6 +56,4 @@ app.get("/api", (req, res) => {
 // Main application routes
 app.use("/resume", resumeRoutes);
 
-// Vercel automatically handles the server listening.
-// The app is exported so Vercel can use it as a serverless function.
 export default app;
