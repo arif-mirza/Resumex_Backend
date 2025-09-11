@@ -24,10 +24,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://resume-analyzer-p9cd.vercel.app",
-      "https://resume-analyzer-lg31.vercel.app",
-      "https://resume-analyzer-brown-nu.vercel.app",
-      // Add your production Vercel URL here when you know it
+       "https://mjresumex.vercel.app", 
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -55,5 +52,9 @@ app.get("/api", (req, res) => {
 
 // Main application routes
 app.use("/resume", resumeRoutes);
+
+// app.listen(process.env.PORT || 8000, () => {
+//   console.log(`🚀 Server running on port ${process.env.PORT || 8000}`);
+// });
 
 export default app;
