@@ -4,46 +4,40 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
 
-// Load environment variables first
+// Load environment variables
 dotenv.config();
 
-// Debug environment variables loading
+// Debug environment variables loading (optional, but good for troubleshooting)
 console.log("🔍 Main Server - Environment Variables Check:");
 console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
-console.log(
-  "OPENAI_API_KEY length:",
-  process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0
-);
 console.log("PORT:", process.env.PORT);
 console.log("DB_URL exists:", !!process.env.DB_URL);
 
 // app creation
 const app = express();
-const port = process.env.PORT || 5000;
 
-// middleware
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
-app.options("*", cors());
+
+// Consolidated CORS configuration
+// Vercel will set the correct origin in production
 app.use(
   cors({
-   origin: [
-  "http://localhost:5173",
- "https://resume-analyzer-p9cd.vercel.app",
- "https://resume-analyzer-lg31.vercel.app",
- "https://resume-analyzer-brown-nu.vercel.app"
-  
-  
-],
-
-
+    origin: [
+      "http://localhost:5173",
+      "https://resume-analyzer-p9cd.vercel.app",
+      "https://resume-analyzer-lg31.vercel.app",
+      "https://resume-analyzer-brown-nu.vercel.app",
+      // Add your production Vercel URL here when you know it
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+// Database connection
 try {
   connectDB();
   console.log("✅ Database connection successful");
@@ -52,7 +46,7 @@ try {
   process.exit(1);
 }
 
-// root route for testing
+// Root routes for testing
 app.get("/", (req, res) => {
   res.send("🚀 Resume Analyzer API is running...");
 });
@@ -61,17 +55,9 @@ app.get("/api", (req, res) => {
   res.json({ status: "Backend running ✅" });
 });
 
-// routes
+// Main application routes
 app.use("/resume", resumeRoutes);
 
-// if (process.env.NODE_ENV !== "production") {
-//   app.listen(port, () => {
-//     console.log(`🚀 Server running at http://localhost:${port}`);
-//   });
-// }
-
-app.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
-});
-
+// Vercel automatically handles the server listening.
+// The app is exported so Vercel can use it as a serverless function.
 export default app;
