@@ -1,7 +1,6 @@
 import Resume from "../models/resume.js";
 import { analyzeResumeWithAI } from "../services/openai.service.js";
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-
+import pdf from "pdf-parse"; 
 
 export const uploadAndAnalyze = async (req, res) => {
   console.log("📥 New request received for resume upload + analysis");
@@ -22,25 +21,13 @@ export const uploadAndAnalyze = async (req, res) => {
     });
     console.log("💾 Metadata saved to DB with _id:", doc._id);
 
-    // Extract text from PDF using pdfjs-dist
+    // Extract text from PDF using the correct pdf-parse library
     let resumeText = "";
     if (req.file && req.file.buffer) {
       try {
-        const loadingTask = getDocument({ data: req.file.buffer });
-        const pdfDocument = await loadingTask.promise;
-        const totalPages = pdfDocument.numPages;
-        let pagesText = [];
-
-        for (let i = 1; i <= totalPages; i++) {
-          const page = await pdfDocument.getPage(i);
-          const textContent = await page.getTextContent();
-          const textItems = textContent.items.map(item => item.str);
-          pagesText.push(textItems.join(' '));
-        }
-
-        resumeText = pagesText.join('\n');
-        console.log("✅ PDF parsing successful with pdfjs-dist");
-
+        const pdfData = await pdf(req.file.buffer);
+        resumeText = pdfData.text;
+        console.log("✅ PDF parsing successful with pdf-parse");
       } catch (err) {
         console.error("❌ PDF parsing failed:", err.message);
         resumeText = `Could not extract text. File info: ${req.file.originalname}`;
