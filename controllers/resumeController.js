@@ -3,7 +3,7 @@ import { analyzeResumeWithAI } from "../services/openai.service.js";
 import { PdfReader } from "pdfreader";
 
 export const uploadAndAnalyze = async (req, res) => {
-  console.log("📥 New request received for resume upload + analysis");
+  console.log(" New request received for resume upload + analysis");
 
   try {
     // File check
@@ -11,7 +11,7 @@ export const uploadAndAnalyze = async (req, res) => {
       console.error("No file uploaded");
       return res.status(400).json({ error: "No file uploaded" });
     }
-    console.log("✅ File received:", req.file.originalname);
+    console.log("File received:", req.file.originalname);
 
     // Save initial metadata
     let doc = await Resume.create({
@@ -19,7 +19,7 @@ export const uploadAndAnalyze = async (req, res) => {
       size: req.file.size,
       mimeType: req.file.mimetype,
     });
-    console.log("💾 Metadata saved to DB with _id:", doc._id);
+    console.log("Metadata saved to DB with _id:", doc._id);
 
     // Extract text from PDF using pdfreader
     let resumeText = "";
@@ -37,29 +37,29 @@ export const uploadAndAnalyze = async (req, res) => {
             }
           });
         });
-        console.log("✅ PDF parsing successful with pdfreader");
+        console.log("PDF parsing successful with pdfreader");
       } catch (err) {
-        console.error("❌ PDF parsing failed:", err.message);
+        console.error(" PDF parsing failed:", err.message);
         resumeText = `Could not extract text. File info: ${req.file.originalname}`;
       }
     } else {
-      console.warn("⚠️ No file buffer found, skipping PDF parse");
+      console.warn(" No file buffer found, skipping PDF parse");
       resumeText = "No resume file uploaded.";
     }
 
     // Send to OpenAI
     let analysis;
     try {
-      console.log("🤖 Sending resume to OpenAI...");
-      console.log("📝 Resume text length:", resumeText.length);
-      console.log("📝 Resume text preview:", resumeText.substring(0, 300) + "...");
+      console.log("Sending resume to OpenAI...");
+      console.log(" Resume text length:", resumeText.length);
+      console.log("Resume text preview:", resumeText.substring(0, 300) + "...");
       
       analysis = await analyzeResumeWithAI(resumeText);
-      console.log("✅ OpenAI analysis successful:", analysis);
+      console.log("OpenAI analysis successful:", analysis);
       
       // Validate analysis structure
       if (!analysis.score || !analysis.skills || !analysis.suggestions || !analysis.jobSuggestions) {
-        console.warn("⚠️ Analysis missing required fields, using fallback");
+        console.warn("Analysis missing required fields, using fallback");
         analysis = {
           score: analysis.score || 50,
           skills: analysis.skills || ["Basic skills"],
@@ -76,8 +76,8 @@ export const uploadAndAnalyze = async (req, res) => {
       });
       
     } catch (err) {
-      console.error("❌ OpenAI analysis failed:", err.message);
-      console.error("❌ Full error details:", err);
+      console.error("OpenAI analysis failed:", err.message);
+      console.error(" Full error details:", err);
       
       // Ensure fallback analysis has all required fields
       analysis = {
@@ -87,17 +87,17 @@ export const uploadAndAnalyze = async (req, res) => {
         jobSuggestions: ["General positions"],
       };
       
-      console.log("⚠️ Using fallback analysis:", analysis);
+      console.log("Using fallback analysis:", analysis);
     }
 
     // Save in DB
     doc.analysis = analysis;
     await doc.save();
-    console.log("💾 Analysis saved in DB for _id:", doc._id);
+    console.log("Analysis saved in DB for _id:", doc._id);
 
     return res.json({ ok: true, doc });
   } catch (err) {
-    console.error("❌ Unexpected error:", err.message);
+    console.error(" Unexpected error:", err.message);
     return res.status(500).json({ error: "Server error", details: err.message });
   }
 };

@@ -7,8 +7,7 @@ import resumeRoutes from "./routes/resumeRoutes.js";
 // Load environment variables
 dotenv.config();
 
-// Debug environment variables loading (optional, but good for troubleshooting)
-console.log("🔍 Main Server - Environment Variables Check:");
+console.log("Main Server - Environment Variables Check:");
 console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
 console.log("PORT:", process.env.PORT);
 console.log("DB_URL exists:", !!process.env.DB_URL);
@@ -35,7 +34,7 @@ app.use(
 // Database connection
 try {
   connectDB();
-  console.log("✅ Database connection successful");
+  console.log("Database connection successful");
 } catch (error) {
   console.error("Database connection failed:", error.message);
   process.exit(1);
@@ -43,18 +42,18 @@ try {
 
 // Root routes for testing
 app.get("/", (req, res) => {
-  res.send("🚀 Resume Analyzer API is running...");
+  res.send("Resume Analyzer API is running...");
 });
 
 app.get("/api", (req, res) => {
-  res.json({ status: "Backend running ✅" });
+  res.json({ status: "Backend running" });
 });
 
 // Main application routes
 app.use("/resume", resumeRoutes);
 
 // app.listen(process.env.PORT || 8000, () => {
-//   console.log(`🚀 Server running on port ${process.env.PORT || 8000}`);
+//   console.log(` Server running on port ${process.env.PORT || 8000}`);
 // });
 
 export default app;

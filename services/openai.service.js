@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Debug: Check environment variables
-console.log("🔍 OpenAI Service - Environment Check:");
+console.log("OpenAI Service - Environment Check:");
 console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
 console.log("OPENAI_API_KEY length:", process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0);
 console.log("OPENAI_API_KEY starts with:", process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 10) + "..." : "undefined");
@@ -14,7 +14,7 @@ console.log("OPENAI_API_KEY starts with:", process.env.OPENAI_API_KEY ? process.
 let client = null;
 
 function initializeClient() {
-  console.log("🔍 initializeClient called");
+  console.log(" initializeClient called");
   console.log("Current client state:", !!client);
   console.log("OPENAI_API_KEY available:", !!process.env.OPENAI_API_KEY);
   
@@ -34,20 +34,20 @@ function initializeClient() {
 
 // Keep output strictly JSON
 export async function analyzeResumeWithAI(resumeText) {
-  console.log("🔍 analyzeResumeWithAI called with text length:", resumeText ? resumeText.length : 0);
+  console.log(" analyzeResumeWithAI called with text length:", resumeText ? resumeText.length : 0);
   
   // Initialize client when first needed
   const openaiClient = initializeClient();
   
   if (!openaiClient) {
     const error = "OpenAI client not initialized. Please check your OPENAI_API_KEY in .env file";
-    console.error("❌", error);
+    console.error("error happening", error);
     throw new Error(error);
   }
 
   try {
     const truncated = (resumeText || "").slice(0, 20000); // safety limit
-    console.log("📝 Truncated text length:", truncated.length);
+    console.log("Truncated text length:", truncated.length);
     
     const system = `
 You are a professional resume analyst. Analyze the given resume text and return a STRICT JSON response with exactly these fields:
@@ -70,7 +70,7 @@ IMPORTANT RULES:
 - If job suggestions are unclear, suggest general roles based on any technical skills found
 `;
 
-    console.log("🤖 Sending request to OpenAI...");
+    console.log("Sending request to OpenAI...");
     const resp = await openaiClient.chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
@@ -81,23 +81,23 @@ IMPORTANT RULES:
       temperature: 0.2,
     });
 
-    console.log("✅ OpenAI response received");
+    console.log("OpenAI response received");
     const content = resp.choices?.[0]?.message?.content || "{}";
-    console.log("📄 Raw response content:", content.substring(0, 100) + "...");
+    console.log("Raw response content:", content.substring(0, 100) + "...");
     
     // If model ever returns fence-wrapped JSON, strip it
     const cleaned = content.replace(/^```json|```$/g, "").trim();
     const parsed = JSON.parse(cleaned);
-    console.log("✅ Successfully parsed OpenAI response");
+    console.log("Successfully parsed OpenAI response");
     
     // Validate the response structure and provide fallbacks
-    console.log("🔍 Validating response structure:");
+    console.log("Validating response structure:");
     console.log("- Score:", parsed.score, "Type:", typeof parsed.score);
     console.log("- Skills count:", parsed.skills?.length || 0);
     console.log("- Suggestions count:", parsed.suggestions?.length || 0);
     console.log("- Job suggestions count:", parsed.jobSuggestions?.length || 0);
     
-    // Ensure all required fields exist with meaningful defaults if missing
+    
     const validatedResponse = {
       score: typeof parsed.score === 'number' && parsed.score >= 0 && parsed.score <= 100 ? parsed.score : 50,
       skills: Array.isArray(parsed.skills) && parsed.skills.length > 0 ? parsed.skills : ["Basic resume skills"],
@@ -105,10 +105,10 @@ IMPORTANT RULES:
       jobSuggestions: Array.isArray(parsed.jobSuggestions) && parsed.jobSuggestions.length > 0 ? parsed.jobSuggestions : ["General professional positions"]
     };
     
-    console.log("✅ Final validated response:", validatedResponse);
+    console.log(" Final validated response:", validatedResponse);
     return validatedResponse;
   } catch (error) {
-    console.error("❌ Error in analyzeResumeWithAI:", error.message);
+    console.error("Error in analyzeResumeWithAI:", error.message);
     console.error("Error type:", error.constructor.name);
     console.error("Full error:", error);
     throw error;
